@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="theme-color" content="#3D2E00"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="Relia"/>
+  <title>Relia · Vandaag</title>
+  <style>
+    :root {
+      --ink: #1C2833;
+      --muted: #5C6B78;
+      --line: #DDD4C8;
+      --navy: #1E3A4C;
+      --paper: #F3EDE3;
+      --accent: #C9A227;
+      --malt: #3D2E00;
+      --cafe: #C9A227;
+      --taverne: #6B3D7A;
+      --restaurant: #1F7A62;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    header.app {
+      background: var(--malt);
+      padding: 10px 12px 8px;
+      padding-top: max(10px, env(safe-area-inset-top));
+    }
+    header.app h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    header.app p {
+      margin: 2px 0 0;
+      font-size: 12px;
+      color: #D4C4A8;
+    }
+    header.app .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    header.app .tools { display: flex; gap: 6px; flex: none; }
+    button.link {
+      background: transparent;
+      border: 1px solid #A8861C;
+      color: #F3EDE3;
+      border-radius: 4px;
+      padding: 5px 8px;
+      font-size: 12px;
+      min-height: 28px;
+      cursor: pointer;
+    }
+    main { padding: 10px 10px 24px; padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px;
+      margin: 0 0 8px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin: 0 0 6px;
+    }
+    input {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      margin: 0 0 14px;
+      font-family: inherit;
+      color: var(--ink);
+      background: #fff;
+    }
+    .error { color: #9C3B2A; font-size: 13px; min-height: 1.2em; margin: 0 0 10px; }
+    .hint { color: var(--muted); font-size: 14px; line-height: 1.45; margin: 0 0 16px; }
+    button.primary, button.secondary, a.action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    button.primary {
+      width: 100%;
+      background: var(--accent);
+      color: var(--malt);
+      border: 1px solid var(--accent);
+    }
+    button.secondary {
+      width: 100%;
+      background: #fff;
+      color: var(--navy);
+      border: 1px solid var(--line);
+      margin-top: 8px;
+    }
+    button.primary:disabled { opacity: .45; }
+    .stop {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 0 0 8px;
+      display: flex;
+    }
+    .stop.task { background: #FFE500; }
+    .stripe { width: 4px; flex: none; background: var(--navy); }
+    .stripe.cafe { background: var(--cafe); }
+    .stripe.taverne { background: var(--taverne); }
+    .stripe.restaurant { background: var(--restaurant); }
+    .stripe.task { background: var(--malt); }
+    .body { flex: 1; padding: 8px 10px 8px; min-width: 0; }
+    .time {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      margin: 0 0 1px;
+    }
+    .stop.task .time { color: var(--malt); }
+    .title { font-size: 14px; font-weight: 600; margin: 0; word-wrap: break-word; }
+    .detail, .meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 2px 0 0;
+      line-height: 1.3;
+    }
+    .stop.task .detail, .stop.task .meta, .stop.task .title { color: var(--malt); }
+    .actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    a.action {
+      flex: 1;
+      background: var(--navy);
+      color: #fff;
+      border: 1px solid var(--navy);
+      font-size: 12px;
+    }
+    a.action.gold {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--malt);
+    }
+    .empty { text-align: center; color: var(--muted); padding: 16px 10px; }
+    .busy { text-align: center; color: var(--muted); padding: 16px 10px; }
+  </style>
+</head>
+<body>
+  <header class="app">
+    <div class="row">
+      <div>
+        <h1>Relia</h1>
+        <p id="subtitle">Vandaag op de ronde</p>
+      </div>
+      <div class="tools">
+        <button class="link" id="refreshAction" type="button" hidden>Vernieuwen</button>
+        <button class="link" id="topAction" type="button" hidden></button>
+      </div>
+    </div>
+  </header>
+  <main id="app"></main>
+  <script>
+    window.RELIA = {"key":"sb_publishable_detn4StXChZ7IiD55Ytokw_QPlf4Mwp","url":"https://ntpasvyucqnermyudnpt.supabase.co"};
+    const STORE = "relia.phone.session";
+    const app = document.getElementById("app");
+    const subtitle = document.getElementById("subtitle");
+    const topAction = document.getElementById("topAction");
+    const refreshAction = document.getElementById("refreshAction");
+
+    function config() {
+      const c = window.RELIA || {};
+      return { url: (c.url || "").replace(/\/$/, ""), key: c.key || "" };
+    }
+
+    function esc(value) {
+      return String(value ?? "").replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[ch]));
+    }
+
+    function todayStamp() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      return y + "-" + m + "-" + d;
+    }
+
+    function todayLabel() {
+      return new Intl.DateTimeFormat("nl-BE", {
+        weekday: "long", day: "numeric", month: "long"
+      }).format(new Date());
+    }
+
+    function readSession() {
+      try { return JSON.parse(localStorage.getItem(STORE) || "null"); }
+      catch { return null; }
+    }
+
+    function saveSession(session) {
+      localStorage.setItem(STORE, JSON.stringify(session));
+    }
+
+    function clearSession() {
+      localStorage.removeItem(STORE);
+    }
+
+    function international(value) {
+      let number = String(value || "").replace(/[^\d+]/g, "");
+      if (number.startsWith("+")) number = number.slice(1);
+      else if (number.startsWith("00")) number = number.slice(2);
+      else if (number.startsWith("0")) number = "32" + number.slice(1);
+      return number;
+    }
+
+    function stripeClass(row) {
+      if (row.kind === 1) return "task";
+      const type = ((row.customer && row.customer.outlet_type) || "").toLowerCase();
+      if (type === "café" || type === "cafe") return "cafe";
+      if (type === "taverne") return "taverne";
+      if (type === "restaurant") return "restaurant";
+      return "";
+    }
+
+    function address(customer) {
+      if (!customer) return "";
+      return [customer.street, customer.postal_code, customer.municipality, "België"]
+        .filter(part => part && String(part).trim())
+        .join(", ");
+    }
+
+    function authError(text, status) {
+      try {
+        const json = JSON.parse(text);
+        const combined = json.error_description || json.msg || json.error || json.error_code || "";
+        if (/invalid login|invalid_grant|invalid_credentials/i.test(combined))
+          return "E-mail of wachtwoord is onjuist.";
+        if (/Email not confirmed/i.test(combined))
+          return "Dit account is nog niet bevestigd.";
+        if (status === 429 || /rate limit|once every/i.test(combined))
+          return "Je kunt zo dadelijk een nieuwe code vragen.";
+        if (combined) return combined;
+      } catch {}
+      if (status === 401 || status === 403) return "E-mail of wachtwoord is onjuist.";
+      return "Inloggen is niet gelukt.";
+    }
+
+    async function sendAuth(path, body, token) {
+      const { url, key } = config();
+      const headers = {
+        apikey: key,
+        "Content-Type": "application/json"
+      };
+      if (token) headers.Authorization = "Bearer " + token;
+      const response = await fetch(url + "/auth/v1/" + path, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body)
+      });
+      const text = await response.text();
+      return { ok: response.ok, status: response.status, text };
+    }
+
+    function toSession(text, fallbackEmail) {
+      const json = JSON.parse(text);
+      if (!json.access_token || !json.refresh_token) throw new Error("Inloggen gaf geen geldig antwoord.");
+      const expires = Date.now() + Math.max(60, json.expires_in || 3600) * 1000;
+      return {
+        access_token: json.access_token,
+        refresh_token: json.refresh_token,
+        expires_at: expires,
+        email: (json.user && json.user.email) || fallbackEmail || ""
+      };
+    }
+
+    async function refreshSession(session) {
+      const result = await sendAuth("token?grant_type=refresh_token", {
+        refresh_token: session.refresh_token
+      });
+      if (!result.ok) return null;
+      const next = toSession(result.text, session.email);
+      saveSession(next);
+      return next;
+    }
+
+    async function restGet(path, session) {
+      const { url, key } = config();
+      const go = token => fetch(url + "/rest/v1/" + path, {
+        headers: {
+          apikey: key,
+          Authorization: "Bearer " + token,
+          Accept: "application/json"
+        }
+      });
+      let response = await go(session.access_token);
+      if (response.status === 401 || response.status === 403) {
+        const next = await refreshSession(session);
+        if (!next) {
+          clearSession();
+          throw new Error("Je bent niet (meer) aangemeld. Log opnieuw in.");
+        }
+        session = next;
+        response = await go(session.access_token);
+      }
+      if (!response.ok) throw new Error("De ronde is niet geladen.");
+      return response.json();
+    }
+
+    function setTop(label, onClick) {
+      if (!label) {
+        topAction.hidden = true;
+        topAction.onclick = null;
+        refreshAction.hidden = true;
+        refreshAction.onclick = null;
+        return;
+      }
+      topAction.hidden = false;
+      topAction.textContent = label;
+      topAction.onclick = onClick;
+      refreshAction.hidden = false;
+      refreshAction.onclick = () => showToday();
+    }
+
+    function showLogin(error) {
+      subtitle.textContent = "Vandaag op de ronde";
+      setTop(null);
+      app.innerHTML =
+        '<form class="card" id="login">' +
+          '<p class="hint">Log in met hetzelfde Relia-account als op de laptop. Je ziet alleen de ronde van vandaag.</p>' +
+          '<label for="email">E-mail</label>' +
+          '<input id="email" name="email" type="email" autocomplete="username" inputmode="email" required/>' +
+          '<label for="password">Wachtwoord</label>' +
+          '<input id="password" name="password" type="password" autocomplete="current-password" required/>' +
+          '<p class="error" id="error"></p>' +
+          '<button class="primary" type="submit">Aanmelden</button>' +
+          '<button class="secondary" type="button" id="forgot">Wachtwoord vergeten</button>' +
+        '</form>';
+      const form = document.getElementById("login");
+      const errorEl = document.getElementById("error");
+      if (error) errorEl.textContent = error;
+      form.addEventListener("submit", async event => {
+        event.preventDefault();
+        errorEl.textContent = "";
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const button = form.querySelector("button.primary");
+        button.disabled = true;
+        try {
+          const result = await sendAuth("token?grant_type=password", { email, password });
+          if (!result.ok) throw new Error(authError(result.text, result.status));
+          saveSession(toSession(result.text, email));
+          await showToday();
+        } catch (ex) {
+          errorEl.textContent = ex.message || "Inloggen is niet gelukt.";
+        } finally {
+          button.disabled = false;
+        }
+      });
+      document.getElementById("forgot").addEventListener("click", async () => {
+        const email = document.getElementById("email").value.trim();
+        errorEl.textContent = "";
+        if (!email) {
+          errorEl.textContent = "Vul je e-mailadres in.";
+          return;
+        }
+        try {
+          const result = await sendAuth("recover", { email });
+          if (!result.ok) throw new Error(authError(result.text, result.status));
+          errorEl.textContent = "Als dat adres een Relia-account is, krijg je een mail. Kies het nieuwe wachtwoord in Relia op de laptop.";
+        } catch (ex) {
+          errorEl.textContent = ex.message || "De mail is niet verstuurd.";
+        }
+      });
+    }
+
+    function stopHtml(row) {
+      const task = row.kind === 1;
+      const customer = row.customer || {};
+      const title = task ? (row.purpose || "Taak") : (customer.company_name || "Zaak");
+      const detail = task ? (row.notes || "") : (row.purpose || "");
+      const phone = customer.phone || "";
+      const addr = address(customer);
+      const meta = [phone, [customer.street, customer.postal_code, customer.municipality].filter(Boolean).join(" ")]
+        .filter(part => part && String(part).trim())
+        .join(" · ");
+      const stripe = stripeClass(row);
+      const time = (row.visit_time || "").trim();
+      let actions = "";
+      if (!task && phone) {
+        const digits = phone.replace(/\s+/g, "");
+        const wa = international(phone);
+        actions += '<a class="action" href="tel:' + esc(digits) + '">Bellen</a>';
+        actions += '<a class="action" href="https://wa.me/' + esc(wa) + '">WhatsApp</a>';
+      }
+      if (!task && addr) {
+        actions += '<a class="action gold" href="https://www.google.com/maps/search/?api=1&query=' +
+          encodeURIComponent(addr) + '">Kaarten</a>';
+      }
+      return '<article class="stop' + (task ? " task" : "") + '">' +
+        '<div class="stripe ' + stripe + '"></div>' +
+        '<div class="body">' +
+          (time ? '<p class="time">' + esc(time) + '</p>' : "") +
+          '<p class="title">' + esc(title) + '</p>' +
+          (detail ? '<p class="detail">' + esc(detail) + '</p>' : "") +
+          (meta && !task ? '<p class="meta">' + esc(meta) + '</p>' : "") +
+          (actions ? '<div class="actions">' + actions + '</div>' : "") +
+        '</div></article>';
+    }
+
+    async function showToday() {
+      const session = readSession();
+      if (!session) {
+        showLogin();
+        return;
+      }
+      subtitle.textContent = todayLabel();
+      setTop("Uitloggen", () => { clearSession(); showLogin(); });
+      app.innerHTML = '<p class="busy">Ronde laden…</p>';
+      try {
+        const date = todayStamp();
+        const rows = await restGet(
+          "visit?select=id,kind,visit_date,visit_time,purpose,notes,customer_id,customer(company_name,outlet_type,street,postal_code,municipality,phone,contact_person)" +
+          "&visit_date=eq." + date + "&order=visit_time.asc,id.asc",
+          session);
+        if (!rows.length) {
+          app.innerHTML = '<div class="card empty">Niets gepland vandaag.</div>';
+          return;
+        }
+        app.innerHTML = rows.map(stopHtml).join("");
+      } catch (ex) {
+        if (/niet \(meer\) aangemeld/i.test(ex.message || "")) {
+          showLogin(ex.message);
+          return;
+        }
+        app.innerHTML = '<div class="card"><p class="error">' + esc(ex.message || "De ronde is niet geladen.") +
+          '</p><button class="primary" type="button" id="retry">Opnieuw</button></div>';
+        document.getElementById("retry").onclick = showToday;
+      }
+    }
+
+    if (!config().url || !config().key) {
+      app.innerHTML = '<div class="card"><p class="error">Relia is niet ingesteld op deze pagina.</p></div>';
+    } else {
+      showToday();
+    }
+  </script>
+</body>
+</html>
